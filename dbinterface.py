@@ -85,3 +85,7 @@ def log_time(doc, time):
     doc.update({
         u'Uptime': time
     })
+
+
+# full_occupancy_notif()
+# double_entry_alarm()
