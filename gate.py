@@ -10,7 +10,6 @@ today = date.today().strftime("%b-%d-%Y")
 gateID = open('./id.txt', 'r').read()
 occDoc, gateDoc, transaction = db_init(today, gateID)
 
-
 # Assign sensors and servo to GPIO pins on device
 entrTopSensor = MotionSensor(2, queue_len=10, threshold=0.5)  # not sure if these params are good, we can test
 exitTopSensor = MotionSensor(16, queue_len=10, threshold=0.5)
@@ -33,8 +32,12 @@ def emergency_button_held():
     emergency_open()
 
 
-def entr_side_clear():
+def entr_side_checker():
     entr_person_passed()
+
+
+def exit_side_checker():
+    exit_person_passed()
 
 
 entrTopSensor.when_motion = entr_sensor_triggered
@@ -65,22 +68,21 @@ def close_gate():  # to be completed
 
 
 def entr_request():
-    global sensorClear
     if check_occupancy(transaction, occDoc):  # this also increments the occupancy if it allows the person in
         print('access granted')
         open_gate(True)
-        entrSideSensor.when_no_motion = entr_side_clear
+        entrSideSensor.when_no_motion = entr_side_checker
         exitSideSensor.wait_for_motion(7)  # they have 7 seconds to activate the side sensor on the exit side
         if not exitSideSensor.motion_detected:  # if the wait has timed out, i.e. they didn't enter
             close_gate()
             dec_occupancy(occDoc)
             dec_total(occDoc)  # also need to decrease the TotalIn field
-            clear_entr_sensor()  # clean up the double entry checker
+            clear_side_sensors()  # clean up the double entry checker
         else:  # if the person has begun passing through the gate
             exitSideSensor.wait_for_no_motion()  # no timeout because we don't want to close while someone is in the way
             close_gate()
             log_entrance(gateDoc)
-            clear_entr_sensor()  # clean up the double entry checker
+            clear_side_sensors()  # clean up the double entry checker
     else:
         print('access denied, full')
         # full_occupancy_notif()
@@ -88,14 +90,17 @@ def entr_request():
 
 def exit_request():
     open_gate(False)
+    exitSideSensor.when_no_motion = exit_side_checker
     entrSideSensor.wait_for_motion(7)  # they have 7 seconds to activate the side sensor on the entrance side
     if not entrSideSensor.motion_detected:
         close_gate()
+        clear_side_sensors()
     else:
         entrSideSensor.wait_for_no_motion()  # no timeout because we don't want to close while someone is in the way
         close_gate()
         dec_occupancy(occDoc)  # we wait to decrement until we're sure it was a real exit
         log_exit(gateDoc)
+        clear_side_sensors()
 
 
 def emergency_open():
@@ -124,13 +129,6 @@ def entr_person_passed():
         # double_entry_alarm()
 
 
-def clear_entr_sensor():
-    global sensorClear
-    sensorClear = False
-    entrSideSensor.when_no_motion = None
-    entrSideSensor.when_motion = None
-
-
 def exit_person_passed():
     global sensorClear
     if not sensorClear:
@@ -141,9 +139,11 @@ def exit_person_passed():
         # double_entry_alarm()
 
 
-def clear_exit_sensor():
+def clear_side_sensors():
     global sensorClear
     sensorClear = False
+    entrSideSensor.when_no_motion = None
+    entrSideSensor.when_motion = None
     exitSideSensor.when_no_motion = None
     exitSideSensor.when_motion = None
 
