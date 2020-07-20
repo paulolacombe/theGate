@@ -9,7 +9,7 @@ from dbinterface import *
 startTime = time.time()
 today = date.today().strftime("%b-%d-%Y")
 gateID = open('./id.txt', 'r').read()
-occDoc, gateDoc, transaction = db_init(today, gateID)
+occDoc, gateDoc, entrColl, transaction = db_init(today, gateID)
 
 
 # Assign sensors and servo to GPIO pins on device
@@ -78,7 +78,7 @@ def test_normal_entr_request():
         entr_side_checker()
         time.sleep(3)
         close_gate()
-        log_entrance(gateDoc)
+        log_entrance(gateDoc, entrColl)
         clear_side_sensors()  # clean up the double entry checker
     else:
         print('access denied, full')
@@ -93,7 +93,7 @@ def test_normal_exit_request():
     time.sleep(3)
     close_gate()
     dec_occupancy(occDoc)
-    log_exit(gateDoc)
+    log_exit(gateDoc, entrColl)
     clear_side_sensors()
 
 
@@ -108,7 +108,7 @@ def test_improper_entr_request():  # someone else begins entering before the fir
         entr_side_checker()
         time.sleep(1)
         close_gate()
-        log_entrance(gateDoc)
+        log_entrance(gateDoc, entrColl)
         clear_side_sensors()  # clean up the double entry checker
     else:
         print('access denied, full')
@@ -124,7 +124,7 @@ def test_improper_exit_request():  # someone else begins exiting before the firs
     exit_side_checker()
     close_gate()
     dec_occupancy(occDoc)
-    log_exit(gateDoc)
+    log_exit(gateDoc, entrColl)
     clear_side_sensors()
 
 

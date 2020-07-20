@@ -8,7 +8,7 @@ from dbinterface import *
 startTime = time.time()
 today = date.today().strftime("%b-%d-%Y")
 gateID = open('./id.txt', 'r').read()
-occDoc, gateDoc, transaction = db_init(today, gateID)
+occDoc, gateDoc, entrColl, transaction = db_init(today, gateID)
 
 # Assign sensors and servo to GPIO pins on device
 entrTopSensor = MotionSensor(2, queue_len=10, threshold=0.5)  # not sure if these params are good, we can test

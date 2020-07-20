@@ -1,5 +1,6 @@
 from google.cloud import firestore
 from google.oauth2 import service_account
+from datetime import datetime
 
 
 # Initialize firebase interaction
@@ -22,7 +23,8 @@ def db_init(day, gate):
             u'Uptime': 0
         })
     transaction = db.transaction()
-    return occDoc, gateDoc, transaction
+    entrColl = db.collection(u'Counting_Time')
+    return occDoc, gateDoc, entrColl, transaction
 
 
 # Set up transaction in the check_occupancy method
@@ -51,16 +53,25 @@ def dec_total(doc):
     })
 
 
-def log_entrance(doc):
+def log_entrance(doc, coll):
     doc.update({
         u'Count': firestore.Increment(1)
     })
+    coll.add({
+        u'Count': 1,
+        u'time': datetime.now()
+    })
 
 
-def log_exit(doc):
+def log_exit(doc, coll):
     doc.update({
         u'Count': firestore.Increment(-1)
     })
+    coll.add({
+        u'Count': -1,
+        u'time': datetime.now()
+    })
+
 
 
 def log_open(doc):
