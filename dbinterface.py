@@ -24,6 +24,10 @@ def db_init(day, gate):
         })
     transaction = db.transaction()
     entrColl = db.collection(u'Counting_Time')
+    collStream = entrColl.stream()
+    for doc in collStream:
+        if not doc.get(u'time').date() == datetime.now().date():
+            doc.reference.delete()
     return occDoc, gateDoc, entrColl, transaction
 
 
@@ -71,7 +75,6 @@ def log_exit(doc, coll):
         u'Count': -1,
         u'time': datetime.now()
     })
-
 
 
 def log_open(doc):

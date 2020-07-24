@@ -176,19 +176,5 @@ def clear_side_sensors():
 # Thread to continuously update uptime
 while True:
     log_time(gateDoc, time.time() - startTime)
-    time.sleep(5)
-    test_emergency_open()
-    time.sleep(5)
-    test_emergency_open()
-    time.sleep(5)
     test_normal_entr_request()
     time.sleep(5)
-    test_normal_entr_request()
-    time.sleep(5)
-    test_normal_exit_request()
-    time.sleep(5)
-    test_improper_entr_request()
-    time.sleep(5)
-    test_improper_exit_request()
-    time.sleep(5)
-
